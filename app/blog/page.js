@@ -1,32 +1,24 @@
 import Link from "next/link";
 import Image from "next/image";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import Pagination from "../components/pagination";
 
-async function getAllBlogs() {
-  const files = fs.readdirSync(path.join("data"));
-  const blogs = files.map((fileName) => {
-    const slug = fileName.replace(".md", "");
-    const fileData = fs.readFileSync(path.join("data", fileName), "utf-8");
-    const { data } = matter(fileData);
-    return { frontmatter: data, slug: slug };
-  });
-  const orderedBlogs = blogs.sort((a, b) => {
-    return b.frontmatter.id - a.frontmatter.id;
-  });
-  return { blogs: orderedBlogs };
-}
+import { getAllBlogs, blogsPerPage } from "../utils/mdQueries";
+
+export const metadata = {
+  title: "ブログ",
+  description: "これはブログページです",
+};
 
 const Blog = async () => {
-  const { blogs } = await getAllBlogs();
+  const { blogs, numberPages } = await getAllBlogs();
+  const limitedBlogs = blogs.slice(0, blogsPerPage);
   return (
     <>
       <div className="wrapper">
         <div className="container">
           <h1>Blog</h1>
           <p>エンジニアの日常生活をお届けします</p>
-          {blogs.map((blog, index) => (
+          {limitedBlogs.map((blog, index) => (
             <div key={index} className="blogCard">
               <div className="cardContainer">
                 <h2>{blog.frontmatter.title}</h2>
@@ -46,6 +38,7 @@ const Blog = async () => {
             </div>
           ))}
         </div>
+        <Pagination numberPages={numberPages} />
       </div>
     </>
   );
